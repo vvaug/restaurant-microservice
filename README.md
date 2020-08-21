@@ -14,5 +14,5 @@ The restaurant and entregador microservices will be registered on eureka-server 
 Servlet context: ``vo-maria/api/v1/``
 
 # Docs
-restaurant-microservice: http://localhost:8080/vo-maria/api/v1/swagger-ui.html
+restaurant-microservice: http://localhost:8080/vo-maria/api/v1/swagger-ui.html  
 entregador-microservice: http://localhost:8081/entregador/api/v1/swagger-ui.html
