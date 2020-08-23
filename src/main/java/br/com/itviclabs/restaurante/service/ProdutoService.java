@@ -1,8 +1,8 @@
 package br.com.itviclabs.restaurante.service;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.itviclabs.restaurante.domain.Produto;
@@ -16,8 +16,13 @@ public class ProdutoService {
 	@Autowired
 	private ProdutoRepository produtoRepository;
 	
-	public List<Produto> findAll(){
+	public Page<Produto> findAll(Pageable pageable){
 		log.info("Listando produtos disponiveis");
-		return produtoRepository.findAll();
+		return produtoRepository.findAll(pageable);
+	}
+
+	public Produto findById(String id) {
+		return produtoRepository.findById(Long.parseLong(id))
+					.orElse(null);
 	}
 }

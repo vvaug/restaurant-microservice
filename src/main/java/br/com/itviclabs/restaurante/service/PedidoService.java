@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,7 +23,10 @@ import br.com.itviclabs.restaurante.dto.ConfirmacaoPedidoResponse;
 import br.com.itviclabs.restaurante.dto.PedidoRequest;
 import br.com.itviclabs.restaurante.dto.ProdutoRequest;
 import br.com.itviclabs.restaurante.dto.ProdutoResponse;
+import br.com.itviclabs.restaurante.enums.TipoPedido;
+import br.com.itviclabs.restaurante.exception.PedidoRequestException;
 import br.com.itviclabs.restaurante.exception.ProdutosInvalidosException;
+import br.com.itviclabs.restaurante.exception.handler.Campo;
 import br.com.itviclabs.restaurante.repository.PedidoRepository;
 import br.com.itviclabs.restaurante.repository.ProdutoRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -46,14 +51,25 @@ public class PedidoService {
 		
 		Pedido pedido = buildPedido(pedidoRequest);
 		
-		pedidoRepository.save(pedido);
-		
 		if (pedidoRequest.getEntrega()) {
+			
 			log.info("Pedido para entrega");
-			return enviarParaEntrega(pedidoRequest);
+			
+			if (isPedidoValidoParaEntrega(pedidoRequest)) {
+				
+				pedido.setTipoPedido(TipoPedido.ENTREGA);
+				
+				pedidoRepository.save(pedido);
+				
+				return enviarParaEntrega(pedidoRequest);
+			}
 		}
 		
 		log.info("Pedido para retirada");
+		
+		pedido.setTipoPedido(TipoPedido.RETIRADA);
+		
+		pedidoRepository.save(pedido);
 		
 		return ConfirmacaoPedido.builder()
 					.entrega(false)
@@ -116,8 +132,9 @@ public class PedidoService {
 					.collect(Collectors.toList());
 	}
 	
-	@HystrixCommand(fallbackMethod = "entregaFallback")
-	protected ConfirmacaoPedido enviarParaEntrega(PedidoRequest pedidoRequest) {
+	@HystrixCommand(fallbackMethod = "entregaFallback",
+					threadPoolKey = "enviarParaEntregaThreadPool")
+	public ConfirmacaoPedido enviarParaEntrega(PedidoRequest pedidoRequest) {
 		log.info("Realizando solicitação de entrega");
 		ConfirmacaoPedidoResponse response = entregadorClient.realizarEntrega(pedidoRequest);
 		return ConfirmacaoPedido.builder()
@@ -135,6 +152,32 @@ public class PedidoService {
 					.tempoDeEspera(null)
 					.retorno("Houve uma falha ao comunicar-se com o serviço de entrega")
 					.build();
+	}
+
+	protected Boolean isPedidoValidoParaEntrega(PedidoRequest request){
+		
+		List<Campo> invalidFields = new ArrayList<>();
+		
+		if ( request.getLogradouro() == null ) {
+			invalidFields.add(new Campo("logradouro", "vazio"));
+		}
+		if ( request.getNomeCliente() == null ) {
+			invalidFields.add(new Campo("nomeCliente", "vazio"));
+		}
+		if ( request.getNumero() == null || request.getNumero().equals("0") ) {
+			invalidFields.add(new Campo("numero", "vazio"));
+		}
+		
+		if ( ! invalidFields.isEmpty() ) {
+			
+			throw new PedidoRequestException("Informações inválidas para entrega", invalidFields);
+		}
+		
+		return true;
+	}
+	
+	public Page<Pedido> findAll(Pageable pageable) {
+		return pedidoRepository.findAll(pageable);
 	}
 	
 }

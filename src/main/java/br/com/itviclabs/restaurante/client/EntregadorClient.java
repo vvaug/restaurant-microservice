@@ -10,6 +10,6 @@ import br.com.itviclabs.restaurante.dto.PedidoRequest;
 @FeignClient(name = "entregador")
 public interface EntregadorClient {
 
-	@PostMapping("/entregador/api/v1/entreg")
+	@PostMapping("/entregador/api/v1/entrega")
 	public ConfirmacaoPedidoResponse realizarEntrega(@RequestBody PedidoRequest request);
 }
