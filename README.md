@@ -18,7 +18,7 @@ You must to authenticate yourself by accessing the authorization-server:
 ``localhost:8088/oauth/token``  
 ``User``: test-user  
 ``password``: 1234  
-You'll receive a Bearer token and you must inform this token when acessing others microservices like entregador or restaurante-vo-maria
+You'll receive a OAuth2 token and you must inform this token when acessing others microservices like entregador or restaurante-vo-maria
 
 You must access the microservices by the api gateway, to check the disponible endpoints on api-gateway, just access:  
 ``localhost:5555/actuator/routes``
