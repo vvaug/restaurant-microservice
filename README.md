@@ -7,11 +7,16 @@ This project has as dependency the following projects that you can find in my re
   - ``entregador-microservice``
   - ``eureka-server``
   - ``api-gateway``
+  - ``authorization-server``
 
-just clone them and start the api-gateway, restaurant-microservice, entregador-microservice and eureka-server.
+just clone them and start the authorization-server, api-gateway, restaurant-microservice, entregador-microservice and eureka-server.
 The restaurant and entregador microservices will be registered on eureka-server so it has to be up.
 
 # Using the application
+
+You must to authenticate yourself by accessing the authorization-server:
+``localhost:8088/oauth/token``
+You'll receive a Bearer token and you must inform this token when acessing others microservices like entregador or restaurante-vo-maria
 
 You must access the microservices by the api gateway, to check the disponible endpoints on api-gateway, just access:  
 ``localhost:5555/actuator/routes``
